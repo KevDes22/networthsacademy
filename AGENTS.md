@@ -28,3 +28,10 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+<!-- AGENT-MEMORY:BEGIN -->
+- Public academy pages use shared presentation components and semantic Foundation tokens; protected pages live under the client-only authenticated layout so browser sessions survive refresh.
+- All private reads and updates use authenticated server functions with RLS; roles remain in a separate protected table to prevent self-promotion.
+- Sample course previews are static public catalogue data, never inserted as enrolments or certificates; Phase 1 account activity totals stay zero until real learning tables exist.
+- Administrator approvals require a verified target account and a database-verified existing admin; bootstrap administrator access only through supported administration operations.
+<!-- AGENT-MEMORY:END -->

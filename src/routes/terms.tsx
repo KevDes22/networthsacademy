@@ -1,0 +1,5 @@
+import {createFileRoute} from '@tanstack/react-router';
+import {PublicLayout} from '@/components/academy-public';
+import {pageHead} from '@/lib/academy';
+export const Route=createFileRoute('/terms')({head:()=>pageHead('Terms of Service','Networths Academy account and service information.'),component:Page});
+function Page(){return <PublicLayout><main className="container-wide section min-h-[600px]"><h1 className="section-title">Terms of Service</h1><div className="max-w-3xl mt-8 space-y-6 text-muted-foreground leading-8"><p>Networths Academy is operated by Networths Professional Services Foundation. Phase 1 provides account registration, course previews and learner account management.</p><p>Course previews are labelled sample data. Enrolment, paid services, lesson delivery and certificates are not currently available.</p><p>Keep your account credentials secure, provide accurate registration information and do not attempt to access other users’ accounts or restricted administrator services.</p><p>These preliminary terms require Foundation review before public launch.</p></div></main></PublicLayout>}

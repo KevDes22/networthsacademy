@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1795109412113,
+      "tag": "0000_academy_profiles_roles",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+import {createFileRoute} from '@tanstack/react-router';
+import {PublicLayout} from '@/components/academy-public';
+import {pageHead} from '@/lib/academy';
+export const Route=createFileRoute('/privacy')({head:()=>pageHead('Privacy Policy','Networths Academy account and service information.'),component:Page});
+function Page(){return <PublicLayout><main className="container-wide section min-h-[600px]"><h1 className="section-title">Privacy Policy</h1><div className="max-w-3xl mt-8 space-y-6 text-muted-foreground leading-8"><p>Networths Academy stores your full name, email address and registration date to provide and manage your learner account. Passwords are managed securely by our authentication service.</p><p>You can view and update your full name in My Profile. Authorised administrators can view learner registration details to manage the academy.</p><p>Account data is not displayed publicly. We do not present sample courses as real learner activity.</p><p>This preliminary privacy notice requires Foundation review before public launch, including retention periods and a contact for privacy requests.</p></div></main></PublicLayout>}
