@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      courses: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          instructor_id: string | null
+          level: string
+          published_at: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by: string
+          description?: string
+          id?: string
+          instructor_id?: string | null
+          level?: string
+          published_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string
+          description?: string
+          id?: string
+          instructor_id?: string | null
+          level?: string
+          published_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courses_instructor_id_fkey"
+            columns: ["instructor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -59,6 +109,16 @@ export type Database = {
     }
     Functions: {
       approve_administrator: { Args: { target_id: string }; Returns: undefined }
+      approve_instructor: { Args: { target_id: string }; Returns: undefined }
+      get_verified_instructor_candidates: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          full_name: string
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -68,7 +128,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "learner" | "admin"
+      app_role: "learner" | "admin" | "instructor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -196,7 +256,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["learner", "admin"],
+      app_role: ["learner", "admin", "instructor"],
     },
   },
 } as const

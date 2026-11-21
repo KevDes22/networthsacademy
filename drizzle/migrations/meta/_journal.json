@@ -15,6 +15,20 @@
       "when": 1795109702463,
       "tag": "0001_tighten_academy_function_permissions",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795263859367,
+      "tag": "0002_add_instructor_role",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1795263888139,
+      "tag": "0003_create_course_authoring",
+      "breakpoints": true
     }
   ]
 }

@@ -14,7 +14,15 @@ export const sampleCourses = [
  {title:'Remote Work & Digital Career Essentials',category:4,level:'Beginner',hours:'4 hours',lessons:12,art:'art-career',icon:Laptop,cover:'YOUR NEXT CHAPTER',tag:'Sample course'},
 ];
 export function pageHead(title:string, description:string) {return {meta:[{title:`${title} | Networths Academy`},{name:'description',content:description},{property:'og:title',content:`${title} | Networths Academy`},{property:'og:description',content:description},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary_large_image'}]};}
-export function dashboardDestination(isAdmin:boolean) {return isAdmin ? '/admin/dashboard' as const : '/dashboard' as const;}
+export function dashboardDestination(isAdmin: boolean, isInstructor = false) {
+ if (isAdmin) return '/admin/dashboard' as const;
+ if (isInstructor) return '/instructor/dashboard' as const;
+ return '/dashboard' as const;
+}
+export function hasCourseAdministrationAccess(isAdmin: boolean) { return isAdmin; }
+export function canEditAssignedCourse(isAdmin: boolean, isInstructor: boolean, userId: string, instructorId: string | null) {
+ return isAdmin || (isInstructor && instructorId !== null && instructorId === userId);
+}
 export function validateRegistration(name:string,password:string,confirm:string,terms:boolean) {
  if(name.trim().length<2) return 'Please enter your full name.';
  if(password.length<8) return 'Use a password with at least 8 characters.';
