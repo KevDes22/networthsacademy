@@ -7,4 +7,4 @@
 - [x] Signed-in administrator checks: all five administrator pages opened as the invited administrator with no console errors.
 - [ ] Learner-side signed-in checks and password recovery delivery: waiting for a preview sign-in after temporary test-account creation was declined.
 - [ ] Foundation approval of preliminary Terms and Privacy Policy before public launch.
-- [ ] Admin course creation and instructor handling — awaiting the instructor-access choice.
+- [ ] Admin course creation and instructor accounts; admins assign courses, instructors manage only their assigned courses.
