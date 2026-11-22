@@ -1,5 +1,5 @@
 import { createServerFn } from '@tanstack/react-start';
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { z } from 'zod';
 import { requireSupabaseAuth } from '@/integrations/supabase/auth-middleware';
 import type { Database } from '@/integrations/supabase/types';
@@ -16,11 +16,8 @@ const adminCourseSchema = courseDetailsSchema.extend({
   instructor_id: z.string().uuid().nullable(),
 });
 
-const requireAdmin = async (context: {
-  supabase: { rpc: (name: 'has_role', args: { _user_id: string; _role: 'admin' }) => Promise<{ data: boolean | null; error: unknown }> };
-  userId: string;
-}) => {
-  const result = await context.supabase.rpc('has_role', { _user_id: context.userId, _role: 'admin' });
+const requireAdmin = async (supabase: SupabaseClient<Database>, userId: string) => {
+  const result = await supabase.rpc('has_role', { _user_id: userId, _role: 'admin' });
   if (result.error || !hasCourseAdministrationAccess(result.data === true)) {
     throw new Error('Administrator access required.');
   }
@@ -60,7 +57,7 @@ export const getPublishedCourses = createServerFn({ method: 'GET' }).handler(asy
 export const getAdminCourses = createServerFn({ method: 'POST' })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await requireAdmin(context);
+    await requireAdmin(context.supabase, context.userId);
     const { data, error } = await context.supabase.from('courses').select('*').order('created_at', { ascending: false });
     if (error) throw new Error('Unable to load academy courses.');
 
@@ -79,7 +76,7 @@ export const getAdminCourses = createServerFn({ method: 'POST' })
 export const getInstructorDirectory = createServerFn({ method: 'POST' })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await requireAdmin(context);
+    await requireAdmin(context.supabase, context.userId);
     const roles = await context.supabase.from('user_roles').select('user_id').eq('role', 'instructor').limit(1000);
     if (roles.error) throw new Error('Unable to load instructors.');
     const ids = [...new Set(roles.data.map((role) => role.user_id))];
@@ -92,7 +89,7 @@ export const getInstructorDirectory = createServerFn({ method: 'POST' })
 export const getInstructorCandidates = createServerFn({ method: 'POST' })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    await requireAdmin(context);
+    await requireAdmin(context.supabase, context.userId);
     const { data, error } = await context.supabase.rpc('get_verified_instructor_candidates');
     if (error) throw new Error('Unable to load verified instructor candidates.');
     return data;
@@ -102,7 +99,7 @@ export const createCourse = createServerFn({ method: 'POST' })
   .middleware([requireSupabaseAuth])
   .inputValidator(adminCourseSchema)
   .handler(async ({ context, data }) => {
-    await requireAdmin(context);
+    await requireAdmin(context.supabase, context.userId);
     const { data: course, error } = await context.supabase
       .from('courses')
       .insert({ ...data, status: 'draft', created_by: context.userId })
@@ -116,7 +113,7 @@ export const updateAdminCourse = createServerFn({ method: 'POST' })
   .middleware([requireSupabaseAuth])
   .inputValidator(adminCourseSchema.extend({ id: z.string().uuid(), status: z.enum(['draft', 'published']) }))
   .handler(async ({ context, data }) => {
-    await requireAdmin(context);
+    await requireAdmin(context.supabase, context.userId);
     const { id, ...changes } = data;
     const { data: course, error } = await context.supabase.from('courses').update(changes).eq('id', id).select().single();
     if (error) throw new Error('Unable to save this course. Check the instructor and course details.');

@@ -34,4 +34,5 @@ use the editor.
 - All private reads and updates use authenticated server functions with RLS; roles remain in a separate protected table to prevent self-promotion.
 - Sample course previews are static public catalogue data, never inserted as enrolments or certificates; Phase 1 account activity totals stay zero until real learning tables exist.
 - Administrator approvals require a verified target account and a database-verified existing admin; bootstrap administrator access only through supported administration operations.
+- Course access is enforced in database policies and authenticated server functions; only administrators assign or publish courses, while instructors edit courses assigned to them.
 <!-- AGENT-MEMORY:END -->

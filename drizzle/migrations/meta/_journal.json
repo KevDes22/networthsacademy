@@ -29,6 +29,20 @@
       "when": 1795263888139,
       "tag": "0003_create_course_authoring",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1795329053597,
+      "tag": "0004_include_admin_instructor_candidates",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1795329115333,
+      "tag": "0005_limit_public_course_columns",
+      "breakpoints": true
     }
   ]
 }

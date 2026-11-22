@@ -23,11 +23,14 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAdminAdministratorsRouteImport } from './routes/_authenticated/admin.administrators'
 import { Route as AuthenticatedAdminCoursesRouteImport } from './routes/_authenticated/admin.courses'
 import { Route as AuthenticatedAdminDashboardRouteImport } from './routes/_authenticated/admin.dashboard'
+import { Route as AuthenticatedAdminInstructorsRouteImport } from './routes/_authenticated/admin.instructors'
 import { Route as AuthenticatedAdminLearnersRouteImport } from './routes/_authenticated/admin.learners'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
 import { Route as AuthenticatedDashboardCertificatesRouteImport } from './routes/_authenticated/dashboard.certificates'
 import { Route as AuthenticatedDashboardCoursesRouteImport } from './routes/_authenticated/dashboard.courses'
 import { Route as AuthenticatedDashboardProfileRouteImport } from './routes/_authenticated/dashboard.profile'
+import { Route as AuthenticatedInstructorCoursesRouteImport } from './routes/_authenticated/instructor.courses'
+import { Route as AuthenticatedInstructorDashboardRouteImport } from './routes/_authenticated/instructor.dashboard'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -101,6 +104,12 @@ const AuthenticatedAdminDashboardRoute =
     path: '/admin/dashboard',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAdminInstructorsRoute =
+  AuthenticatedAdminInstructorsRouteImport.update({
+    id: '/admin/instructors',
+    path: '/admin/instructors',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminLearnersRoute =
   AuthenticatedAdminLearnersRouteImport.update({
     id: '/admin/learners',
@@ -131,6 +140,18 @@ const AuthenticatedDashboardProfileRoute =
     path: '/profile',
     getParentRoute: () => AuthenticatedDashboardRoute,
   } as any)
+const AuthenticatedInstructorCoursesRoute =
+  AuthenticatedInstructorCoursesRouteImport.update({
+    id: '/instructor/courses',
+    path: '/instructor/courses',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedInstructorDashboardRoute =
+  AuthenticatedInstructorDashboardRouteImport.update({
+    id: '/instructor/dashboard',
+    path: '/instructor/dashboard',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -146,11 +167,14 @@ export interface FileRoutesByFullPath {
   '/admin/administrators': typeof AuthenticatedAdminAdministratorsRoute
   '/admin/courses': typeof AuthenticatedAdminCoursesRoute
   '/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
+  '/admin/instructors': typeof AuthenticatedAdminInstructorsRoute
   '/admin/learners': typeof AuthenticatedAdminLearnersRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/dashboard/certificates': typeof AuthenticatedDashboardCertificatesRoute
   '/dashboard/courses': typeof AuthenticatedDashboardCoursesRoute
   '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
+  '/instructor/courses': typeof AuthenticatedInstructorCoursesRoute
+  '/instructor/dashboard': typeof AuthenticatedInstructorDashboardRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -166,11 +190,14 @@ export interface FileRoutesByTo {
   '/admin/administrators': typeof AuthenticatedAdminAdministratorsRoute
   '/admin/courses': typeof AuthenticatedAdminCoursesRoute
   '/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
+  '/admin/instructors': typeof AuthenticatedAdminInstructorsRoute
   '/admin/learners': typeof AuthenticatedAdminLearnersRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/dashboard/certificates': typeof AuthenticatedDashboardCertificatesRoute
   '/dashboard/courses': typeof AuthenticatedDashboardCoursesRoute
   '/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
+  '/instructor/courses': typeof AuthenticatedInstructorCoursesRoute
+  '/instructor/dashboard': typeof AuthenticatedInstructorDashboardRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -188,11 +215,14 @@ export interface FileRoutesById {
   '/_authenticated/admin/administrators': typeof AuthenticatedAdminAdministratorsRoute
   '/_authenticated/admin/courses': typeof AuthenticatedAdminCoursesRoute
   '/_authenticated/admin/dashboard': typeof AuthenticatedAdminDashboardRoute
+  '/_authenticated/admin/instructors': typeof AuthenticatedAdminInstructorsRoute
   '/_authenticated/admin/learners': typeof AuthenticatedAdminLearnersRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/dashboard/certificates': typeof AuthenticatedDashboardCertificatesRoute
   '/_authenticated/dashboard/courses': typeof AuthenticatedDashboardCoursesRoute
   '/_authenticated/dashboard/profile': typeof AuthenticatedDashboardProfileRoute
+  '/_authenticated/instructor/courses': typeof AuthenticatedInstructorCoursesRoute
+  '/_authenticated/instructor/dashboard': typeof AuthenticatedInstructorDashboardRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -210,11 +240,14 @@ export interface FileRouteTypes {
     | '/admin/administrators'
     | '/admin/courses'
     | '/admin/dashboard'
+    | '/admin/instructors'
     | '/admin/learners'
     | '/admin/settings'
     | '/dashboard/certificates'
     | '/dashboard/courses'
     | '/dashboard/profile'
+    | '/instructor/courses'
+    | '/instructor/dashboard'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -230,11 +263,14 @@ export interface FileRouteTypes {
     | '/admin/administrators'
     | '/admin/courses'
     | '/admin/dashboard'
+    | '/admin/instructors'
     | '/admin/learners'
     | '/admin/settings'
     | '/dashboard/certificates'
     | '/dashboard/courses'
     | '/dashboard/profile'
+    | '/instructor/courses'
+    | '/instructor/dashboard'
   id:
     | '__root__'
     | '/'
@@ -251,11 +287,14 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/administrators'
     | '/_authenticated/admin/courses'
     | '/_authenticated/admin/dashboard'
+    | '/_authenticated/admin/instructors'
     | '/_authenticated/admin/learners'
     | '/_authenticated/admin/settings'
     | '/_authenticated/dashboard/certificates'
     | '/_authenticated/dashboard/courses'
     | '/_authenticated/dashboard/profile'
+    | '/_authenticated/instructor/courses'
+    | '/_authenticated/instructor/dashboard'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -371,6 +410,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/instructors': {
+      id: '/_authenticated/admin/instructors'
+      path: '/admin/instructors'
+      fullPath: '/admin/instructors'
+      preLoaderRoute: typeof AuthenticatedAdminInstructorsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/learners': {
       id: '/_authenticated/admin/learners'
       path: '/admin/learners'
@@ -406,6 +452,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardProfileRouteImport
       parentRoute: typeof AuthenticatedDashboardRoute
     }
+    '/_authenticated/instructor/courses': {
+      id: '/_authenticated/instructor/courses'
+      path: '/instructor/courses'
+      fullPath: '/instructor/courses'
+      preLoaderRoute: typeof AuthenticatedInstructorCoursesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/instructor/dashboard': {
+      id: '/_authenticated/instructor/dashboard'
+      path: '/instructor/dashboard'
+      fullPath: '/instructor/dashboard'
+      preLoaderRoute: typeof AuthenticatedInstructorDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -433,8 +493,11 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminAdministratorsRoute: typeof AuthenticatedAdminAdministratorsRoute
   AuthenticatedAdminCoursesRoute: typeof AuthenticatedAdminCoursesRoute
   AuthenticatedAdminDashboardRoute: typeof AuthenticatedAdminDashboardRoute
+  AuthenticatedAdminInstructorsRoute: typeof AuthenticatedAdminInstructorsRoute
   AuthenticatedAdminLearnersRoute: typeof AuthenticatedAdminLearnersRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
+  AuthenticatedInstructorCoursesRoute: typeof AuthenticatedInstructorCoursesRoute
+  AuthenticatedInstructorDashboardRoute: typeof AuthenticatedInstructorDashboardRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -442,8 +505,11 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminAdministratorsRoute: AuthenticatedAdminAdministratorsRoute,
   AuthenticatedAdminCoursesRoute: AuthenticatedAdminCoursesRoute,
   AuthenticatedAdminDashboardRoute: AuthenticatedAdminDashboardRoute,
+  AuthenticatedAdminInstructorsRoute: AuthenticatedAdminInstructorsRoute,
   AuthenticatedAdminLearnersRoute: AuthenticatedAdminLearnersRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
+  AuthenticatedInstructorCoursesRoute: AuthenticatedInstructorCoursesRoute,
+  AuthenticatedInstructorDashboardRoute: AuthenticatedInstructorDashboardRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
