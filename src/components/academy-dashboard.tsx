@@ -113,7 +113,7 @@ export function DashboardPage({ account, view, adminData }: { account: Account; 
           <Button variant="ghost" size="icon" className="md:hidden" aria-label="Close menu" onClick={() => setOpen(false)}><X /></Button>
         </div>
         <nav className="space-y-2">
-          {nav.map((item) => <Link key={item.to} to={item.to} activeOptions={{ exact: true }} className="dash-link" activeProps={{ className: 'dash-link active' }}>
+          {nav.map((item) => <Link key={item.to} to={item.to} activeOptions={{ exact: true }} className="dash-link" activeProps={{ className: 'dash-link active' }} onClick={() => setOpen(false)}>
             <item.icon size={18} />{item.label}
           </Link>)}
         </nav>
