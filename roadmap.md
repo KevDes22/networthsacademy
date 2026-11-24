@@ -8,3 +8,7 @@
 - [ ] Learner-side signed-in checks and password recovery delivery: waiting for a preview sign-in after temporary test-account creation was declined.
 - [ ] Foundation approval of preliminary Terms and Privacy Policy before public launch.
 - [x] Admin course creation and instructor accounts; admins assign and publish courses, instructors edit only their assigned courses.
+
+## Phase 2
+- [ ] Build instructor curriculum authoring with ordered sections, written/video/file lessons, private uploads, and administrator review/publishing.
+- [ ] Decide learner access to published curriculum materials; enrolments do not exist yet.
