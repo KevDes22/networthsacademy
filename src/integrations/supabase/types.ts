@@ -14,6 +14,115 @@ export type Database = {
   }
   public: {
     Tables: {
+      course_lessons: {
+        Row: {
+          article_content: string
+          course_id: string
+          created_at: string
+          created_by: string
+          file_mime_type: string | null
+          file_name: string | null
+          file_path: string | null
+          file_size_bytes: number | null
+          id: string
+          lesson_type: string
+          position: number
+          section_id: string
+          status: string
+          summary: string
+          title: string
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          article_content?: string
+          course_id: string
+          created_at?: string
+          created_by: string
+          file_mime_type?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          lesson_type: string
+          position?: number
+          section_id: string
+          status?: string
+          summary?: string
+          title: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          article_content?: string
+          course_id?: string
+          created_at?: string
+          created_by?: string
+          file_mime_type?: string | null
+          file_name?: string | null
+          file_path?: string | null
+          file_size_bytes?: number | null
+          id?: string
+          lesson_type?: string
+          position?: number
+          section_id?: string
+          status?: string
+          summary?: string
+          title?: string
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_lessons_section_course_fkey"
+            columns: ["section_id", "course_id"]
+            isOneToOne: false
+            referencedRelation: "course_sections"
+            referencedColumns: ["id", "course_id"]
+          },
+        ]
+      }
+      course_sections: {
+        Row: {
+          course_id: string
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          position: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          created_by: string
+          description?: string
+          id?: string
+          position?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          created_by?: string
+          description?: string
+          id?: string
+          position?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_sections_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           category: string
@@ -110,6 +219,10 @@ export type Database = {
     Functions: {
       approve_administrator: { Args: { target_id: string }; Returns: undefined }
       approve_instructor: { Args: { target_id: string }; Returns: undefined }
+      can_manage_course_content: {
+        Args: { _course_id: string }
+        Returns: boolean
+      }
       get_verified_instructor_candidates: {
         Args: never
         Returns: {

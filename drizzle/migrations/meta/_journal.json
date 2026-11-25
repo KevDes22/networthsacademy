@@ -43,6 +43,13 @@
       "when": 1795329115333,
       "tag": "0005_limit_public_course_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795620165201,
+      "tag": "0006_create_course_curriculum",
+      "breakpoints": true
     }
   ]
 }
