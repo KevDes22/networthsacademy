@@ -97,7 +97,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap",
+      },
       { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
@@ -125,12 +128,27 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((event) => {
-      if (!["SIGNED_IN", "SIGNED_OUT", "USER_UPDATED"].includes(event)) return;
-      void router.invalidate();
-      if (event !== "SIGNED_OUT") void queryClient.invalidateQueries();
+    let userId: string | undefined;
+    let refresh: ReturnType<typeof setTimeout> | undefined;
+    const { data } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!["INITIAL_SESSION", "SIGNED_IN", "SIGNED_OUT", "USER_UPDATED"].includes(event)) return;
+      const nextUserId = session?.user.id;
+      const changedUser = userId !== nextUserId;
+      userId = nextUserId;
+      if (event === "INITIAL_SESSION" || (event === "SIGNED_IN" && !changedUser)) return;
+
+      // Route loaders and server functions read Supabase Auth. Start them after
+      // this callback releases the auth client, rather than during a session event.
+      clearTimeout(refresh);
+      refresh = setTimeout(() => {
+        void router.invalidate();
+        if (nextUserId) void queryClient.invalidateQueries();
+      }, 0);
     });
-    return () => data.subscription.unsubscribe();
+    return () => {
+      clearTimeout(refresh);
+      data.subscription.unsubscribe();
+    };
   }, [router, queryClient]);
 
   return (
