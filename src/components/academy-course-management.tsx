@@ -1,4 +1,4 @@
-import { useState, type Dispatch, type FormEvent, type SetStateAction } from 'react';
+import { useState, type Dispatch, type FormEvent, type ReactNode, type SetStateAction } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { useServerFn } from '@tanstack/react-start';
@@ -171,6 +171,7 @@ export function AdminCourseManagement() {
                 <td className="px-3 py-4">
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" size="sm" onClick={() => openEdit(course)}>Edit</Button>
+                    <CurriculumLink courseId={course.id} to="/admin/courses" />
                     <Button size="sm" variant={course.status === 'published' ? 'secondary' : 'default'} onClick={() => void togglePublication(course)}>
                       {course.status === 'published' ? 'Unpublish' : 'Publish'}
                     </Button>
@@ -191,6 +192,7 @@ export function AdminCourseManagement() {
       </div>
 
       <CourseEditorDialog
+        curriculum={editing && <CurriculumLink courseId={editing.id} to="/admin/courses" />}
         title={editing ? 'Edit course' : 'Create a course'}
         open={dialogOpen}
         onOpenChange={setDialogOpen}
@@ -346,18 +348,32 @@ export function InstructorCourseManagement() {
             <td className="px-3 py-4">{course.category}</td>
             <td className="px-3 py-4">{course.level}</td>
             <td className="px-3 py-4"><CourseStatus status={course.status} /></td>
-            <td className="px-3 py-4 text-right"><Button variant="outline" size="sm" onClick={() => openEdit(course)}>Edit details</Button></td>
+            <td className="px-3 py-4 text-right"><div className="flex justify-end gap-2">
+              <Button variant="outline" size="sm" onClick={() => openEdit(course)}>Edit details</Button>
+              <CurriculumLink courseId={course.id} to="/instructor/courses" />
+            </div></td>
           </tr>)}</tbody>
         </table>
         {visibleCourses.length === 0 && <p className="py-12 text-center text-sm text-muted-foreground">{courses.length === 0 ? 'No courses have been assigned to you yet.' : 'No matching courses.'}</p>}
       </div>
 
-      <CourseEditorDialog title="Edit course details" open={dialogOpen} onOpenChange={setDialogOpen} form={form} setForm={setForm} saving={saving} onSubmit={submit} />
+      <CourseEditorDialog curriculum={editing && <CurriculumLink courseId={editing.id} to="/instructor/courses" />} title="Edit course details" open={dialogOpen} onOpenChange={setDialogOpen} form={form} setForm={setForm} saving={saving} onSubmit={submit} />
     </section>
   );
 }
 
+function CurriculumLink({ courseId, to }: { courseId: string; to: '/admin/courses' | '/instructor/courses' }) {
+  return (
+    <Button asChild variant="outline" size="sm">
+      <Link to={to} search={{ curriculum: courseId }}>
+        <BookOpen size={16} /> Curriculum
+      </Link>
+    </Button>
+  );
+}
+
 function CourseEditorDialog({
+  curriculum,
   title,
   open,
   onOpenChange,
@@ -367,6 +383,7 @@ function CourseEditorDialog({
   saving,
   onSubmit,
 }: {
+  curriculum: ReactNode;
   title: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -383,6 +400,7 @@ function CourseEditorDialog({
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>Course details and the assigned instructor.</DialogDescription>
         </DialogHeader>
+        {curriculum && <div>{curriculum}</div>}
         <form className="space-y-5" onSubmit={onSubmit}>
           <label className="block text-sm font-semibold">Course title
             <Input className="mt-2" minLength={3} maxLength={160} required value={form.title} onChange={(event) => setForm((current) => ({ ...current, title: event.target.value }))} />
