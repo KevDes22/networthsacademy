@@ -443,6 +443,15 @@ export function CourseCurriculumManagement({
         <span>{publishedCount} published lessons</span>
       </div>
 
+      {data.course.status === "published" && publishedCount === 0 && (
+        <p className="mt-4 rounded-md border border-border p-4 text-sm" role="status">
+          Students can enroll in this course, but there are no published lessons for them to open.{" "}
+          {isAdmin
+            ? "Publish a lesson when it’s ready for students."
+            : "Submit a draft lesson for an administrator to review and publish."}
+        </p>
+      )}
+
       {data.sections.length === 0 ? (
         <div className="empty mt-5">
           <span className="category-icon mx-auto mb-6">

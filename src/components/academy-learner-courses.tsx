@@ -31,6 +31,8 @@ export function LearnerCourses({ userId }: { userId: string }) {
     retry: false,
   });
   const current = courseId ? course : courses;
+  const firstLessonId = course.data?.sections.find((section) => section.lessons.length > 0)
+    ?.lessons[0]?.id;
 
   return (
     <section>
@@ -89,8 +91,11 @@ export function LearnerCourses({ userId }: { userId: string }) {
       {courseId && course.isSuccess && (
         <>
           <p className="mt-4 text-muted-foreground">{course.data.description}</p>
-          {course.data.sections.length === 0 && (
-            <p className="mt-5">Lessons will appear here as they are published.</p>
+          {!firstLessonId && (
+            <p className="mt-5 rounded-md border border-border p-4" role="status">
+              You’re enrolled. This course has no published lessons yet. Check My Courses again once
+              the Academy publishes them.
+            </p>
           )}
           <div className="mt-6 space-y-5">
             {course.data.sections.map((section) => (
@@ -100,7 +105,11 @@ export function LearnerCourses({ userId }: { userId: string }) {
                   <p className="mt-2 text-sm text-muted-foreground">{section.description}</p>
                 )}
                 {section.lessons.map((lesson) => (
-                  <details key={lesson.id} className="mt-4 border-t border-border pt-4">
+                  <details
+                    key={lesson.id}
+                    open={lesson.id === firstLessonId}
+                    className="mt-4 border-t border-border pt-4"
+                  >
                     <summary className="cursor-pointer font-medium">{lesson.title}</summary>
                     {lesson.summary && (
                       <p className="mt-3 text-sm text-muted-foreground">{lesson.summary}</p>
