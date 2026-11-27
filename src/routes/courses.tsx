@@ -1,11 +1,12 @@
 import { z } from "zod";
-import { enrollmentSearch } from "@/lib/academy-enrollment";
+import { enrollmentSearch, findPublishedPreviewCourse } from "@/lib/academy-enrollment";
 import { EnrollButton } from "@/components/academy-enroll-button";
 import { createFileRoute } from "@tanstack/react-router";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { BookOpen, Search, SlidersHorizontal } from "lucide-react";
-import { PublicLayout, CourseCard } from "@/components/academy-public";
+import { PublicLayout } from "@/components/academy-public";
+import { CourseCard } from "@/components/academy-course-card";
 import { categories, sampleCourses, pageHead } from "@/lib/academy";
 import { Button } from "@/components/ui/button";
 import { getPublishedCourses } from "@/lib/academy-courses.functions";
@@ -36,9 +37,13 @@ function Courses() {
   const matches = (title: string, category: string) =>
     title.toLowerCase().includes(query.toLowerCase()) &&
     (cat === "all" || category === categoryName);
-  const sampleMatches = sampleCourses.filter((c) =>
-    matches(c.title, categories[c.category]?.name ?? ""),
-  );
+  const sampleMatches = sampleCourses.filter((course) => {
+    const category = categories[course.category]?.name ?? "";
+    return (
+      matches(course.title, category) &&
+      !findPublishedPreviewCourse(course.title, category, publishedCourses)
+    );
+  });
   const selected = publishedCourses.find((course) => course.id === search.enroll);
   const publishedMatches = publishedCourses.filter((c) => matches(c.title, c.category));
   return (
