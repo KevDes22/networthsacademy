@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import type { ModuleCertification } from "@/lib/academy-certification";
+import type { ModuleCertification, QuizAnswer } from "@/lib/academy-certification";
 
 export function ModuleQuiz({
   module,
@@ -11,7 +11,7 @@ export function ModuleQuiz({
 }: {
   module: ModuleCertification;
   onComplete: () => void;
-  onSubmit: (revision: string, answers: number[]) => void;
+  onSubmit: (revision: string, answers: QuizAnswer[]) => void;
   busy: boolean;
 }) {
   return (
@@ -32,6 +32,10 @@ export function ModuleQuiz({
         (module.passed ? (
           <p role="status" className="text-sm font-medium text-primary">
             Quiz passed · {module.score}%
+          </p>
+        ) : module.pendingReview ? (
+          <p role="status" className="text-sm font-medium">
+            Quiz submitted. An instructor will grade your essay answers.
           </p>
         ) : module.quiz ? (
           <LearnerQuiz
@@ -61,15 +65,19 @@ function LearnerQuiz({
 }: {
   quiz: NonNullable<ModuleCertification["quiz"]>;
   busy: boolean;
-  onSubmit: (revision: string, answers: number[]) => void;
+  onSubmit: (revision: string, answers: QuizAnswer[]) => void;
 }) {
-  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [answers, setAnswers] = useState<Record<number, QuizAnswer>>({});
+  const ready = quiz.questions.every(
+    (_, index) =>
+      typeof answers[index] === "number" || Boolean(String(answers[index] ?? "").trim()),
+  );
   return (
     <form
       className="space-y-4"
       onSubmit={(event) => {
         event.preventDefault();
-        if (Object.keys(answers).length !== quiz.questions.length || busy) return;
+        if (!ready || busy) return;
         onSubmit(
           quiz.revision,
           quiz.questions.map((_, index) => answers[index]!),
@@ -80,25 +88,42 @@ function LearnerQuiz({
       {quiz.questions.map((question, index) => (
         <fieldset key={index} disabled={busy} className="space-y-2 rounded-md border p-3">
           <legend className="px-1 font-medium">{question.prompt}</legend>
-          {question.choices.map((choice, choiceIndex) => (
-            <label key={choiceIndex} className="flex items-start gap-2 text-sm">
-              <input
-                type="radio"
-                name={`question-${index}`}
-                required
-                checked={answers[index] === choiceIndex}
-                className="mt-0.5 accent-primary"
-                onChange={() => setAnswers({ ...answers, [index]: choiceIndex })}
-              />
-              {choice}
-            </label>
-          ))}
+          {question.type === "multiple_choice" ? (
+            question.choices.map((choice, choiceIndex) => (
+              <label key={choiceIndex} className="flex items-start gap-2 text-sm">
+                <input
+                  type="radio"
+                  name={`question-${index}`}
+                  required
+                  checked={answers[index] === choiceIndex}
+                  className="mt-0.5 accent-primary"
+                  onChange={() => setAnswers({ ...answers, [index]: choiceIndex })}
+                />
+                {choice}
+              </label>
+            ))
+          ) : question.type === "essay" ? (
+            <textarea
+              aria-label="Essay answer"
+              className="field min-h-28"
+              required
+              maxLength={5000}
+              value={answers[index] ?? ""}
+              onChange={(e) => setAnswers({ ...answers, [index]: e.target.value })}
+            />
+          ) : (
+            <input
+              aria-label="Fill in the blank"
+              className="field"
+              required
+              maxLength={200}
+              value={answers[index] ?? ""}
+              onChange={(e) => setAnswers({ ...answers, [index]: e.target.value })}
+            />
+          )}
         </fieldset>
       ))}
-      <Button
-        type="submit"
-        disabled={busy || Object.keys(answers).length !== quiz.questions.length}
-      >
+      <Button type="submit" disabled={busy || !ready}>
         Submit quiz
       </Button>
     </form>

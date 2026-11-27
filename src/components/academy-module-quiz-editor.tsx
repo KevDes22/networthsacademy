@@ -1,3 +1,4 @@
+import { ModuleEssayReviews } from "@/components/academy-module-essay-review";
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -13,8 +14,17 @@ import { Input } from "@/components/ui/input";
 import { manageModuleQuiz } from "@/lib/academy-certification.functions";
 import { authoredQuiz, type AuthoredQuiz } from "@/lib/academy-certification";
 
-const newQuestion = () => ({ prompt: "", choices: ["", "", "", ""], correct: 0 });
-
+type Question = AuthoredQuiz["questions"][number];
+function newQuestion(type: Question["type"] = "multiple_choice", prompt = ""): Question {
+  switch (type) {
+    case "fill_blank":
+      return { type, prompt, accepted: [""] };
+    case "essay":
+      return { type, prompt };
+    case "multiple_choice":
+      return { type, prompt, choices: ["", "", "", ""], correct: 0 };
+  }
+}
 export function ModuleQuizEditor({
   sectionId,
   title,
@@ -25,11 +35,12 @@ export function ModuleQuizEditor({
   userId: string;
 }) {
   const [open, setOpen] = useState(false);
+  const [tab, setTab] = useState<"questions" | "essays">("questions");
   const manage = useServerFn(manageModuleQuiz);
   const quiz = useQuery({
     queryKey: ["manage-module-quiz", userId, sectionId],
     queryFn: () => manage({ data: { sectionId } }),
-    enabled: open,
+    enabled: open && tab === "questions",
     staleTime: 0,
     gcTime: 0,
     retry: false,
@@ -49,24 +60,45 @@ export function ModuleQuizEditor({
               one.
             </DialogDescription>
           </DialogHeader>
-          {quiz.isPending && <p role="status">Loading quiz…</p>}
-          {quiz.isError && (
-            <div role="alert">
-              <p>{quiz.error.message}</p>
-              <Button variant="outline" onClick={() => void quiz.refetch()}>
-                Try again
-              </Button>
-            </div>
-          )}
-          {open && quiz.isSuccess && (
-            <QuizForm
-              initial={quiz.data}
-              onSave={async (data) => {
-                await manage({ data: { sectionId, quiz: data } });
-                setOpen(false);
-                void quiz.refetch();
-              }}
-            />
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={tab === "questions" ? "default" : "outline"}
+              aria-pressed={tab === "questions"}
+              onClick={() => setTab("questions")}
+            >
+              Questions
+            </Button>
+            <Button
+              variant={tab === "essays" ? "default" : "outline"}
+              aria-pressed={tab === "essays"}
+              onClick={() => setTab("essays")}
+            >
+              Grade essays
+            </Button>
+          </div>
+          {open && tab === "essays" && <ModuleEssayReviews sectionId={sectionId} userId={userId} />}
+          {tab === "questions" && (
+            <>
+              {quiz.isPending && <p role="status">Loading quiz…</p>}
+              {quiz.isError && (
+                <div role="alert">
+                  <p>{quiz.error.message}</p>
+                  <Button variant="outline" onClick={() => void quiz.refetch()}>
+                    Try again
+                  </Button>
+                </div>
+              )}
+              {open && quiz.isSuccess && (
+                <QuizForm
+                  initial={quiz.data}
+                  onSave={async (data) => {
+                    await manage({ data: { sectionId, quiz: data } });
+                    setOpen(false);
+                    void quiz.refetch();
+                  }}
+                />
+              )}
+            </>
           )}
         </DialogContent>
       </Dialog>
@@ -86,9 +118,18 @@ function QuizForm({
   );
   const save = useMutation({
     mutationFn: async () => {
-      const parsed = authoredQuiz.safeParse(form);
+      const parsed = authoredQuiz.safeParse({
+        ...form,
+        questions: form.questions.map((question) =>
+          question.type === "fill_blank"
+            ? { ...question, accepted: question.accepted.filter((answer) => answer.trim()) }
+            : question,
+        ),
+      });
       if (!parsed.success)
-        throw new Error("Enter a pass mark, each question and all four answers.");
+        throw new Error(
+          "Check the pass mark, question text and required answers for each question.",
+        );
       await onSave(parsed.data);
     },
   });
@@ -123,6 +164,23 @@ function QuizForm({
           <fieldset key={index} className="space-y-3 rounded-md border p-3">
             <legend className="px-1 font-medium">Question {index + 1}</legend>
             <label className="block text-sm">
+              Question type
+              <select
+                className="field mt-1"
+                value={question.type}
+                onChange={(event) => {
+                  const type = event.target.value;
+                  if (type === "multiple_choice" || type === "fill_blank" || type === "essay") {
+                    editQuestion(index, newQuestion(type, question.prompt));
+                  }
+                }}
+              >
+                <option value="multiple_choice">Multiple choice</option>
+                <option value="fill_blank">Fill in the blank</option>
+                <option value="essay">Essay</option>
+              </select>
+            </label>
+            <label className="block text-sm">
               Question
               <Input
                 className="mt-1"
@@ -134,41 +192,64 @@ function QuizForm({
                 }
               />
             </label>
-            {question.choices.map((choice, choiceIndex) => (
-              <label key={choiceIndex} className="block text-sm">
-                Answer {choiceIndex + 1}
-                <Input
-                  className="mt-1"
+            {question.type === "multiple_choice" && (
+              <>
+                {question.choices.map((choice, choiceIndex) => (
+                  <label key={choiceIndex} className="block text-sm">
+                    Answer {choiceIndex + 1}
+                    <Input
+                      className="mt-1"
+                      required
+                      maxLength={200}
+                      value={choice}
+                      onChange={(event) =>
+                        editQuestion(index, {
+                          ...question,
+                          choices: question.choices.map((value, position) =>
+                            position === choiceIndex ? event.target.value : value,
+                          ),
+                        })
+                      }
+                    />
+                  </label>
+                ))}
+                <label className="block text-sm">
+                  Correct answer
+                  <select
+                    className="field mt-1"
+                    value={question.correct}
+                    onChange={(event) =>
+                      editQuestion(index, { ...question, correct: Number(event.target.value) })
+                    }
+                  >
+                    {question.choices.map((_, choiceIndex) => (
+                      <option key={choiceIndex} value={choiceIndex}>
+                        Answer {choiceIndex + 1}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </>
+            )}
+            {question.type === "fill_blank" && (
+              <label className="block text-sm">
+                Accepted answers (one per line)
+                <textarea
+                  className="field mt-1 min-h-20"
                   required
-                  maxLength={200}
-                  value={choice}
+                  maxLength={2010}
+                  value={question.accepted.join("\n")}
                   onChange={(event) =>
-                    editQuestion(index, {
-                      ...question,
-                      choices: question.choices.map((value, position) =>
-                        position === choiceIndex ? event.target.value : value,
-                      ),
-                    })
+                    editQuestion(index, { ...question, accepted: event.target.value.split("\n") })
                   }
                 />
               </label>
-            ))}
-            <label className="block text-sm">
-              Correct answer
-              <select
-                className="field mt-1"
-                value={question.correct}
-                onChange={(event) =>
-                  editQuestion(index, { ...question, correct: Number(event.target.value) })
-                }
-              >
-                {question.choices.map((_, choiceIndex) => (
-                  <option key={choiceIndex} value={choiceIndex}>
-                    Answer {choiceIndex + 1}
-                  </option>
-                ))}
-              </select>
-            </label>
+            )}
+            {question.type === "essay" && (
+              <p className="text-sm text-muted-foreground">
+                Grade this answer under Grade essays after the learner submits.
+              </p>
+            )}
             <Button
               type="button"
               size="sm"

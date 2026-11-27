@@ -80,7 +80,11 @@ describe("Enrolled course content", () => {
         ],
       },
     ]);
-    const question = { prompt: "Pick four", choices: ["4", "5", "6", "7"] };
+    const question = {
+      type: "multiple_choice",
+      prompt: "Pick four",
+      choices: ["4", "5", "6", "7"],
+    };
     const quiz = { revision: "revision", passPercent: 70, questions: [question] };
     certify.mockImplementation(async ({ data }) => {
       const completed = data.operation !== "read";
@@ -115,5 +119,59 @@ describe("Enrolled course content", () => {
       "submit",
       "issue",
     ]);
+  });
+  it("sends mixed quiz answers and shows pending essay review", async () => {
+    openCourse([
+      {
+        id: "module-one",
+        title: "Module 1",
+        description: "",
+        lessons: [
+          { id: "lesson", title: "Start", lesson_type: "article", article_content: "Lesson" },
+        ],
+      },
+    ]);
+    certify.mockImplementation(async ({ data }) => ({
+      eligible: false,
+      certificateId: null,
+      modules: [
+        {
+          sectionId: "module-one",
+          completed: true,
+          passed: false,
+          score: null,
+          pendingReview: data.operation === "submit",
+          quiz: {
+            revision: "revision",
+            passPercent: 70,
+            questions: [
+              { type: "multiple_choice", prompt: "Pick four", choices: ["4", "5", "6", "7"] },
+              { type: "fill_blank", prompt: "Fill the gap" },
+              { type: "essay", prompt: "Explain your answer" },
+            ],
+          },
+        },
+      ],
+    }));
+
+    fireEvent.click(await screen.findByRole("radio", { name: "4" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Fill in the blank" }), {
+      target: { value: "Data" },
+    });
+    fireEvent.change(screen.getByRole("textbox", { name: "Essay answer" }), {
+      target: { value: "My explanation" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Submit quiz" }));
+    expect(await screen.findByText(/An instructor will grade your essay answers/)).toBeVisible();
+    expect(screen.getByRole("button", { name: "Request certificate" })).toBeDisabled();
+    expect(certify).toHaveBeenLastCalledWith({
+      data: {
+        operation: "submit",
+        courseId: "course-id",
+        sectionId: "module-one",
+        revision: "revision",
+        answers: [0, "Data", "My explanation"],
+      },
+    });
   });
 });
