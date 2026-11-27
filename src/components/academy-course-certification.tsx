@@ -8,26 +8,32 @@ export function ModuleQuiz({
   onComplete,
   onSubmit,
   busy,
+  quizHeadingId,
 }: {
   module: ModuleCertification;
+  quizHeadingId: string;
   onComplete: () => void;
   onSubmit: (revision: string, answers: QuizAnswer[]) => void;
   busy: boolean;
 }) {
   return (
     <div className="mt-5 space-y-3 border-t border-border pt-4">
-      <label className="flex items-center gap-2 text-sm font-medium">
-        <input
-          className="size-4 accent-primary"
-          type="checkbox"
-          checked={module.completed}
-          disabled={busy || module.completed}
-          onChange={(event) => {
-            if (event.target.checked) onComplete();
-          }}
-        />
-        Mark module complete
-      </label>
+      {module.completed ? (
+        <p className="text-sm font-medium text-primary">Module completed</p>
+      ) : (
+        <Button disabled={busy} onClick={onComplete}>
+          Mark as completed
+        </Button>
+      )}
+      {module.completed && (
+        <h3
+          id={quizHeadingId}
+          tabIndex={-1}
+          className="scroll-mt-6 font-semibold focus-visible:outline-primary"
+        >
+          Module quiz
+        </h3>
+      )}
       {module.completed &&
         (module.passed ? (
           <p role="status" className="text-sm font-medium text-primary">
@@ -84,7 +90,7 @@ function LearnerQuiz({
         );
       }}
     >
-      <p className="text-sm text-muted-foreground">Module quiz · Pass mark {quiz.passPercent}%</p>
+      <p className="text-sm text-muted-foreground">Pass mark {quiz.passPercent}%</p>
       {quiz.questions.map((question, index) => (
         <fieldset key={index} disabled={busy} className="space-y-2 rounded-md border p-3">
           <legend className="px-1 font-medium">{question.prompt}</legend>

@@ -103,10 +103,11 @@ describe("Enrolled course content", () => {
         ],
       };
     });
-    const done = await screen.findByRole("checkbox", { name: "Mark module complete" });
+    const done = await screen.findByRole("button", { name: "Mark as completed" });
     expect(screen.queryByText("Pick four")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Request certificate" })).toBeDisabled();
     fireEvent.click(done);
+    expect(await screen.findByRole("heading", { name: "Module quiz" })).toHaveFocus();
     fireEvent.click(await screen.findByRole("radio", { name: "4" }));
     fireEvent.click(screen.getByRole("button", { name: "Submit quiz" }));
     const request = screen.getByRole("button", { name: "Request certificate" });
@@ -173,5 +174,55 @@ describe("Enrolled course content", () => {
         answers: [0, "Data", "My explanation"],
       },
     });
+  });
+  it("advances after saving and lets the learner revisit the previous quiz", async () => {
+    const sections = ["module-one", "module-two"].map((id, index) => ({
+      id,
+      title: `Module ${index + 1}`,
+      description: "",
+      lessons: [
+        {
+          id: `lesson-${index}`,
+          title: `Lesson ${index + 1}`,
+          lesson_type: "article",
+          article_content: `Content ${index + 1}`,
+        },
+      ],
+    }));
+    openCourse(sections);
+    certify.mockImplementation(async ({ data }) => ({
+      eligible: false,
+      certificateId: null,
+      modules: sections.map(({ id }) => ({
+        sectionId: id,
+        completed: id === "module-one" && data.operation === "complete",
+        passed: false,
+        score: null,
+        quiz:
+          id === "module-one" && data.operation === "complete"
+            ? {
+                revision: "revision",
+                passPercent: 70,
+                questions: [{ type: "essay", prompt: "What did you learn?" }],
+              }
+            : null,
+      })),
+    }));
+
+    const complete = await screen.findByRole("button", { name: "Mark as completed" });
+    expect(screen.queryByRole("heading", { name: "Module 2" })).not.toBeInTheDocument();
+    fireEvent.click(complete);
+
+    expect(await screen.findByRole("heading", { name: "Module 2" })).toHaveFocus();
+    expect(screen.getByText("Content 2")).toBeVisible();
+    expect(certify).toHaveBeenLastCalledWith({
+      data: { operation: "complete", courseId: "course-id", sectionId: "module-one" },
+    });
+    const selector = screen.getByRole("combobox", { name: "Course modules" });
+    expect(selector).toHaveValue("module-two");
+    fireEvent.change(selector, { target: { value: "module-one" } });
+    expect(screen.getByText("What did you learn?")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Next module" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Request certificate" })).toBeDisabled();
   });
 });

@@ -1,5 +1,5 @@
 import { CertificateRequest, ModuleQuiz } from "@/components/academy-course-certification";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useSearch } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -64,8 +64,19 @@ export function LearnerCourses({ userId }: { userId: string }) {
   const moduleById = new Map(
     certification.query.data?.modules.map((module) => [module.sectionId, module]),
   );
-  const firstLessonId = course.data?.sections.find((section) => section.lessons.length > 0)
-    ?.lessons[0]?.id;
+  const modules = course.data?.sections ?? [];
+  const [selection, setSelection] = useState<{
+    courseId: string;
+    sectionId: string;
+    focus: "module" | "quiz";
+  } | null>(null);
+  const activeSelection = selection?.courseId === courseId ? selection : null;
+  const activeSectionId =
+    modules.find((section) => section.id === activeSelection?.sectionId)?.id ?? modules[0]?.id;
+  useEffect(() => {
+    if (!activeSelection || activeSelection.sectionId !== activeSectionId) return;
+    document.getElementById(`${activeSelection.focus}-${activeSectionId}`)?.focus();
+  }, [activeSelection, activeSectionId]);
 
   return (
     <section>
@@ -124,25 +135,68 @@ export function LearnerCourses({ userId }: { userId: string }) {
       {courseId && course.isSuccess && (
         <>
           <p className="mt-4 text-muted-foreground">{course.data.description}</p>
-          {!firstLessonId && (
+          {modules.length === 0 && (
             <p className="mt-5 rounded-md border border-border p-4" role="status">
               You’re enrolled. This course has no published lessons yet. Check My Courses again once
               the Academy publishes them.
             </p>
           )}
+          {modules.length > 1 && (
+            <label className="mt-5 block max-w-md text-sm font-medium">
+              Course modules
+              <select
+                className="field mt-2"
+                value={activeSectionId}
+                disabled={certification.change.isPending}
+                onChange={(event) =>
+                  setSelection({ courseId, sectionId: event.target.value, focus: "module" })
+                }
+              >
+                {modules.map((section, index) => {
+                  const progress = moduleById.get(section.id);
+                  const status = progress?.passed
+                    ? " · Quiz passed"
+                    : progress?.pendingReview
+                      ? " · Quiz awaiting review"
+                      : progress?.completed && progress.quiz
+                        ? " · Quiz ready"
+                        : progress?.completed
+                          ? " · Completed"
+                          : "";
+                  return (
+                    <option key={section.id} value={section.id}>
+                      {index + 1}. {section.title}
+                      {status}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
+          )}
           <div className="mt-6 space-y-5">
-            {course.data.sections.map((section) => {
+            {modules.map((section, index) => {
               const module = moduleById.get(section.id);
+              const next = modules[index + 1];
               return (
-                <section key={section.id} className="rounded-md border border-border p-5">
-                  <h2 className="text-lg font-semibold">{section.title}</h2>
+                <section
+                  key={section.id}
+                  hidden={section.id !== activeSectionId}
+                  className="rounded-md border border-border p-5"
+                >
+                  <h2
+                    id={`module-${section.id}`}
+                    tabIndex={-1}
+                    className="scroll-mt-6 text-lg font-semibold focus-visible:outline-primary"
+                  >
+                    {section.title}
+                  </h2>
                   {section.description && (
                     <p className="mt-2 text-sm text-muted-foreground">{section.description}</p>
                   )}
-                  {section.lessons.map((lesson) => (
+                  {section.lessons.map((lesson, lessonIndex) => (
                     <details
                       key={lesson.id}
-                      open={lesson.id === firstLessonId}
+                      open={lessonIndex === 0}
                       className="mt-4 border-t border-border pt-4"
                     >
                       <summary className="cursor-pointer font-medium">{lesson.title}</summary>
@@ -175,12 +229,26 @@ export function LearnerCourses({ userId }: { userId: string }) {
                     <ModuleQuiz
                       module={module}
                       busy={certification.change.isPending}
+                      quizHeadingId={`quiz-${section.id}`}
                       onComplete={() =>
-                        certification.change.mutate({
-                          courseId,
-                          operation: "complete",
-                          sectionId: section.id,
-                        })
+                        certification.change.mutate(
+                          { courseId, operation: "complete", sectionId: section.id },
+                          {
+                            onSuccess: (data) => {
+                              if (
+                                data.modules.some(
+                                  (item) => item.sectionId === section.id && item.completed,
+                                )
+                              ) {
+                                setSelection({
+                                  courseId,
+                                  sectionId: next?.id ?? section.id,
+                                  focus: next ? "module" : "quiz",
+                                });
+                              }
+                            },
+                          },
+                        )
                       }
                       onSubmit={(revision, answers) =>
                         certification.change.mutate({
@@ -192,6 +260,18 @@ export function LearnerCourses({ userId }: { userId: string }) {
                         })
                       }
                     />
+                  )}
+                  {module?.completed && next && (
+                    <Button
+                      className="mt-4"
+                      variant="outline"
+                      disabled={certification.change.isPending}
+                      onClick={() =>
+                        setSelection({ courseId, sectionId: next.id, focus: "module" })
+                      }
+                    >
+                      Next module
+                    </Button>
                   )}
                 </section>
               );
