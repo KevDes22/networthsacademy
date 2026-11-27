@@ -1,3 +1,4 @@
+import { CourseCurriculumManagement } from './academy-curriculum-management';
 import { useState } from 'react';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
@@ -49,7 +50,7 @@ const adminLinks = [
   { to: '/admin/settings', label: 'Settings', icon: Settings },
 ] as const;
 
-export function DashboardPage({ account, view, adminData }: { account: Account; view: string; adminData?: AdminData }) {
+export function DashboardPage({ account, view, adminData, curriculumId }: { account: Account; view: string; adminData?: AdminData; curriculumId?: string | undefined }) {
   const admin = account.isAdmin;
   const instructor = !admin && account.isInstructor;
   const nav = admin ? adminLinks : instructor ? instructorLinks : learnerLinks;
@@ -171,13 +172,17 @@ export function DashboardPage({ account, view, adminData }: { account: Account; 
         </>}
 
         {view === 'instructor-dashboard' && instructor && <InstructorOverview />}
-        {view === 'courses' && admin && <AdminCourseManagement />}
+        {view === 'courses' && admin && (curriculumId
+          ? <CourseCurriculumManagement key={curriculumId} courseId={curriculumId} userId={account.profile.id} backTo="/admin/courses" />
+          : <AdminCourseManagement />)}
         {view === 'courses' && !admin && !instructor && <>
           <h1 className="section-title">My Courses</h1>
           <p className="text-sm text-muted-foreground mt-3">Your learning journey, all in one place.</p>
           <div className="mt-7"><Empty icon={BookOpen} title="You haven't enrolled in any courses yet." text="Explore course previews and discover your next path." browse /></div>
         </>}
-        {view === 'instructor-courses' && instructor && <InstructorCourseManagement />}
+        {view === 'instructor-courses' && instructor && (curriculumId
+          ? <CourseCurriculumManagement key={curriculumId} courseId={curriculumId} userId={account.profile.id} backTo="/instructor/courses" />
+          : <InstructorCourseManagement />)}
         {view === 'instructors' && admin && <InstructorManagement />}
 
         {view === 'certificates' && <>

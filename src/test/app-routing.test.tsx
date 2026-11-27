@@ -14,4 +14,14 @@ describe("App routing", () => {
 
     expect(matches.at(-1)?.routeId).not.toBe(rootRouteId);
   });
+  it.each(["admin", "instructor"])(
+    "matches the %s curriculum on the protected course route",
+    (role) => {
+      const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
+      const course = "00000000-0000-4000-8000-000000000002";
+      const matches = router.matchRoutes(`/${role}/courses`, { curriculum: course });
+      expect(matches.at(-1)?.routeId).toBe(`/_authenticated/${role}/courses`);
+      expect(matches.at(-1)?.search).toMatchObject({ curriculum: course });
+    },
+  );
 });
