@@ -21,6 +21,8 @@ function useCourseCertification(courseId: string | undefined, userId: string, re
     queryKey,
     queryFn: () => action({ data: { courseId: courseId!, operation: "read" } }),
     enabled: Boolean(courseId) && ready,
+    refetchInterval: (query) =>
+      query.state.data?.modules.some((module) => module.pendingReview) ? 30_000 : false,
     retry: false,
     gcTime: 0,
   });
