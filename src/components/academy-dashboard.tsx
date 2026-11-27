@@ -1,3 +1,4 @@
+import { LearnerOverview } from "./academy-learner-overview";
 import { AcademyCertificates } from "./academy-certificates";
 import { LearnerCourses } from './academy-learner-courses';
 import { CourseCurriculumManagement } from './academy-curriculum-management';
@@ -142,35 +143,39 @@ export function DashboardPage({ account, view, adminData, curriculumId }: { acco
           <p className="eyebrow text-primary mb-3">{admin ? 'Academy overview' : 'A fresh start'}</p>
           <h1 className="section-title">{admin ? 'Academy at a glance' : `Welcome, ${account.profile.full_name.split(' ')[0] || 'Learner'} 👋`}</h1>
           <p className="text-muted-foreground mt-3 text-sm">{admin ? 'Manage your academy and its growing community.' : 'Your next chapter is waiting. Let’s make it a meaningful one.'}</p>
-          <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-5 my-8">
-            {(admin
-              ? [
+          {admin ? (
+            <>
+              <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-5 my-8">
+                {[
                   ['Registered Learners', adminData?.learners ?? 0, Users],
                   ['Administrators', adminData?.administrators ?? 0, ShieldCheck],
                   ['Instructors', adminData?.instructors ?? 0, BriefcaseBusiness],
                   ['Total Courses', adminData?.courses ?? 0, BookOpen],
                   ['Published Courses', adminData?.publishedCourses ?? 0, CheckCircle2],
-                ]
-              : [
-                  ['Enrolled Courses', 0, BookOpen],
-                  ['Courses in Progress', 0, LayoutDashboard],
-                  ['Completed Courses', 0, CheckCircle2],
-                  ['Certificates Earned', 0, GraduationCap],
-                ]).map(([label, count, Icon]) => {
-              const IconComponent = Icon as typeof BookOpen;
-              return <div className="stat" key={String(label)}>
-                <div className="flex justify-between items-center"><p className="text-sm text-muted-foreground">{String(label)}</p><IconComponent size={20} className="text-primary" /></div>
-                <p className="text-3xl font-display font-semibold mt-5">{String(count)}</p>
-              </div>;
-            })}
-          </div>
-          {admin ? <section className="border-y border-border py-6 flex flex-wrap items-center justify-between gap-4">
-            <div><h2 className="text-lg font-semibold">Course management</h2><p className="text-sm text-muted-foreground mt-1">Create courses, assign instructors, and publish them to the catalogue.</p></div>
-            <Button asChild><Link to="/admin/courses">Manage courses <ArrowRight size={16} /></Link></Button>
-          </section> : <>
-            <h2 className="text-lg font-semibold mb-5">My learning</h2>
-            <Empty icon={BookOpen} title="You haven't enrolled in any courses yet." text="Explore the learning paths coming to Networths Academy." browse />
-          </>}
+                ].map(([label, count, Icon]) => {
+                  const IconComponent = Icon as typeof BookOpen;
+                  return (
+                    <div className="stat" key={String(label)}>
+                      <div className="flex justify-between items-center">
+                        <p className="text-sm text-muted-foreground">{String(label)}</p>
+                        <IconComponent size={20} className="text-primary" />
+                      </div>
+                      <p className="text-3xl font-display font-semibold mt-5">{String(count)}</p>
+                    </div>
+                  );
+                })}
+              </div>
+              <section className="border-y border-border py-6 flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-lg font-semibold">Course management</h2>
+                  <p className="text-sm text-muted-foreground mt-1">Create courses, assign instructors, and publish them to the catalogue.</p>
+                </div>
+                <Button asChild><Link to="/admin/courses">Manage courses <ArrowRight size={16} /></Link></Button>
+              </section>
+            </>
+          ) : (
+            <LearnerOverview userId={account.profile.id} />
+          )}
         </>}
 
         {view === 'instructor-dashboard' && instructor && <InstructorOverview />}
