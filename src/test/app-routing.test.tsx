@@ -24,4 +24,14 @@ describe("App routing", () => {
       expect(matches.at(-1)?.search).toMatchObject({ curriculum: course });
     },
   );
+  it.each(["/courses", "/signup", "/login"])("keeps the selected course on %s", (path) => {
+    const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
+    const course = "00000000-0000-4000-8000-000000000002";
+    expect(router.matchRoutes(path, { enroll: course }).at(-1)?.search).toMatchObject({
+      enroll: course,
+    });
+    expect(
+      router.matchRoutes(path, { enroll: "https://example.org" }).at(-1)?.search,
+    ).not.toMatchObject({ enroll: "https://example.org" });
+  });
 });

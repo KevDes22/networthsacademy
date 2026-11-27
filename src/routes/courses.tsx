@@ -1,10 +1,174 @@
-import { createFileRoute } from '@tanstack/react-router';
-import { useSuspenseQuery } from '@tanstack/react-query';
-import { useState } from 'react';
-import { BookOpen, Search, SlidersHorizontal } from 'lucide-react';
-import { PublicLayout, CourseCard } from '@/components/academy-public';
-import { categories,sampleCourses,pageHead } from '@/lib/academy';
-import { Button } from '@/components/ui/button';
-import { getPublishedCourses } from '@/lib/academy-courses.functions';
-export const Route=createFileRoute('/courses')({validateSearch:(s:Record<string,unknown>):{category?:string}=>(typeof s['category']==='string'?{category:s['category']}: {}),loader:async({context})=>{await context.queryClient.ensureQueryData({queryKey:['published-courses'],queryFn:()=>getPublishedCourses()});},head:()=>pageHead('Explore Courses','Browse published Networths Academy courses and clearly labelled sample previews.'),component:Courses});
-function Courses(){const search=Route.useSearch();const {data:publishedCourses}=useSuspenseQuery({queryKey:['published-courses'],queryFn:()=>getPublishedCourses()});const [cat,setCat]=useState(search.category??'all');const [query,setQuery]=useState('');const categoryName=cat==='all'?undefined:categories[Number(cat)]?.name;const matches=(title:string,category:string)=>title.toLowerCase().includes(query.toLowerCase())&&(cat==='all'||category===categoryName);const sampleMatches=sampleCourses.filter(c=>matches(c.title,categories[c.category]?.name??''));const publishedMatches=publishedCourses.filter(c=>matches(c.title,c.category));return <PublicLayout><main className="container-wide section min-h-[650px]"><p className="eyebrow text-primary mb-3">Invest in your potential</p><h1 className="section-title text-4xl">Explore Courses</h1><p className="text-muted-foreground mt-4">Discover your next learning path.</p><div className="relative max-w-xl my-8"><Search className="absolute left-4 top-3.5 text-muted-foreground" size={18}/><input className="field pl-12" placeholder="Search courses…" aria-label="Search courses" value={query} onChange={e=>setQuery(e.target.value)}/></div><div className="flex flex-wrap gap-2 mb-9"><Button variant={cat==='all'?'default':'outline'} onClick={()=>setCat('all')}><SlidersHorizontal/>All categories</Button>{categories.map((c,i)=><Button variant={cat===String(i)?'default':'outline'} key={c.name} onClick={()=>setCat(String(i))}>{c.short}</Button>)}</div><section className="mb-12"><div className="flex items-end justify-between gap-4 mb-5"><div><h2 className="text-xl font-semibold">Published courses</h2><p className="text-sm text-muted-foreground mt-1">{publishedMatches.length} {publishedMatches.length===1?'course':'courses'}</p></div></div>{publishedMatches.length>0?<div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">{publishedMatches.map(course=>{const categoryIndex=categories.findIndex(item=>item.name===course.category);const Icon=categories[categoryIndex]?.icon??BookOpen;return <article className="course-card" key={course.id}><div className="course-art bg-accent text-accent-foreground"><div className="text-center px-4"><Icon className="mx-auto mb-4"/><span className="font-display font-semibold text-xs">{course.category}</span></div><span className="absolute left-3 top-3 text-[10px] font-bold bg-card text-foreground rounded px-2 py-1">PUBLISHED</span></div><div className="p-5"><p className="text-primary font-semibold text-[10px] uppercase mb-2">{course.category}</p><h3 className="text-[15px] font-semibold leading-6 min-h-12">{course.title}</h3><p className="text-xs text-muted-foreground mt-3 line-clamp-3">{course.description||'A new learning opportunity from Networths Academy.'}</p><div className="flex justify-between items-center pt-4 mt-4 border-t border-border text-xs"><span>{course.level}</span><span className="text-primary font-semibold">Enrollment opening soon</span></div></div></article>})}</div>:<p className="border-y border-border py-10 text-sm text-muted-foreground">No published courses in this category yet.</p>}</section><section><div className="flex items-end justify-between gap-4 mb-5"><div><h2 className="text-xl font-semibold">Sample previews</h2><p className="text-sm text-muted-foreground mt-1">{sampleMatches.length} {sampleMatches.length===1?'preview':'previews'}</p></div></div>{sampleMatches.length>0?<div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">{sampleMatches.map(course=><CourseCard key={course.title} course={course}/>)}</div>:<p className="border-y border-border py-10 text-sm text-muted-foreground">No sample previews in this category.</p>}</section><div className="mt-8 text-right"><Button variant="outline" onClick={()=>{setCat('all');setQuery('')}}>Clear filters</Button></div></main></PublicLayout>}
+import { z } from "zod";
+import { enrollmentSearch } from "@/lib/academy-enrollment";
+import { EnrollButton } from "@/components/academy-enroll-button";
+import { createFileRoute } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { BookOpen, Search, SlidersHorizontal } from "lucide-react";
+import { PublicLayout, CourseCard } from "@/components/academy-public";
+import { categories, sampleCourses, pageHead } from "@/lib/academy";
+import { Button } from "@/components/ui/button";
+import { getPublishedCourses } from "@/lib/academy-courses.functions";
+export const Route = createFileRoute("/courses")({
+  validateSearch: enrollmentSearch.extend({ category: z.string().optional().catch(undefined) }),
+  loader: async ({ context }) => {
+    await context.queryClient.ensureQueryData({
+      queryKey: ["published-courses"],
+      queryFn: () => getPublishedCourses(),
+    });
+  },
+  head: () =>
+    pageHead(
+      "Explore Courses",
+      "Browse published Networths Academy courses and clearly labelled sample previews.",
+    ),
+  component: Courses,
+});
+function Courses() {
+  const search = Route.useSearch();
+  const { data: publishedCourses } = useSuspenseQuery({
+    queryKey: ["published-courses"],
+    queryFn: () => getPublishedCourses(),
+  });
+  const [cat, setCat] = useState(search.category ?? "all");
+  const [query, setQuery] = useState("");
+  const categoryName = cat === "all" ? undefined : categories[Number(cat)]?.name;
+  const matches = (title: string, category: string) =>
+    title.toLowerCase().includes(query.toLowerCase()) &&
+    (cat === "all" || category === categoryName);
+  const sampleMatches = sampleCourses.filter((c) =>
+    matches(c.title, categories[c.category]?.name ?? ""),
+  );
+  const selected = publishedCourses.find((course) => course.id === search.enroll);
+  const publishedMatches = publishedCourses.filter((c) => matches(c.title, c.category));
+  return (
+    <PublicLayout>
+      <main className="container-wide section min-h-[650px]">
+        <p className="eyebrow text-primary mb-3">Invest in your potential</p>
+        <h1 className="section-title text-4xl">Explore Courses</h1>
+        <p className="text-muted-foreground mt-4">Discover your next learning path.</p>
+        <div className="relative max-w-xl my-8">
+          <Search className="absolute left-4 top-3.5 text-muted-foreground" size={18} />
+          <input
+            className="field pl-12"
+            placeholder="Search courses…"
+            aria-label="Search courses"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+        <div className="flex flex-wrap gap-2 mb-9">
+          <Button variant={cat === "all" ? "default" : "outline"} onClick={() => setCat("all")}>
+            <SlidersHorizontal />
+            All categories
+          </Button>
+          {categories.map((c, i) => (
+            <Button
+              variant={cat === String(i) ? "default" : "outline"}
+              key={c.name}
+              onClick={() => setCat(String(i))}
+            >
+              {c.short}
+            </Button>
+          ))}
+        </div>
+        {search.enroll && (
+          <div className="mb-6 rounded-md border border-border p-4" role="status">
+            {selected ? (
+              <>
+                Ready to enroll in <strong>{selected.title}</strong>? Select Enroll on its course
+                card.
+              </>
+            ) : (
+              "The selected course is no longer available."
+            )}
+          </div>
+        )}
+        <section className="mb-12">
+          <div className="flex items-end justify-between gap-4 mb-5">
+            <div>
+              <h2 className="text-xl font-semibold">Published courses</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                {publishedMatches.length} {publishedMatches.length === 1 ? "course" : "courses"}
+              </p>
+            </div>
+          </div>
+          {publishedMatches.length > 0 ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {publishedMatches.map((course) => {
+                const categoryIndex = categories.findIndex((item) => item.name === course.category);
+                const Icon = categories[categoryIndex]?.icon ?? BookOpen;
+                return (
+                  <article className="course-card" key={course.id}>
+                    <div className="course-art bg-accent text-accent-foreground">
+                      <div className="text-center px-4">
+                        <Icon className="mx-auto mb-4" />
+                        <span className="font-display font-semibold text-xs">
+                          {course.category}
+                        </span>
+                      </div>
+                      <span className="absolute left-3 top-3 text-[10px] font-bold bg-card text-foreground rounded px-2 py-1">
+                        PUBLISHED
+                      </span>
+                    </div>
+                    <div className="p-5">
+                      <p className="text-primary font-semibold text-[10px] uppercase mb-2">
+                        {course.category}
+                      </p>
+                      <h3 className="text-[15px] font-semibold leading-6 min-h-12">
+                        {course.title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-3 line-clamp-3">
+                        {course.description || "A new learning opportunity from Networths Academy."}
+                      </p>
+                      <div className="flex justify-between items-center pt-4 mt-4 border-t border-border text-xs">
+                        <span>{course.level}</span>
+                        <EnrollButton courseId={course.id} title={course.title} />
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="border-y border-border py-10 text-sm text-muted-foreground">
+              No published courses in this category yet.
+            </p>
+          )}
+        </section>
+        <section>
+          <div className="flex items-end justify-between gap-4 mb-5">
+            <div>
+              <h2 className="text-xl font-semibold">Sample previews</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                {sampleMatches.length} {sampleMatches.length === 1 ? "preview" : "previews"}
+              </p>
+            </div>
+          </div>
+          {sampleMatches.length > 0 ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {sampleMatches.map((course) => (
+                <CourseCard key={course.title} course={course} />
+              ))}
+            </div>
+          ) : (
+            <p className="border-y border-border py-10 text-sm text-muted-foreground">
+              No sample previews in this category.
+            </p>
+          )}
+        </section>
+        <div className="mt-8 text-right">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setCat("all");
+              setQuery("");
+            }}
+          >
+            Clear filters
+          </Button>
+        </div>
+      </main>
+    </PublicLayout>
+  );
+}
