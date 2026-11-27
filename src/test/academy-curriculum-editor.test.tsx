@@ -13,6 +13,7 @@ const { load, save, upload, remove, toastError } = vi.hoisted(() => ({
 
 vi.mock("@tanstack/react-router", () => ({ Link: () => <a href="/instructor/courses">Back</a> }));
 vi.mock("@tanstack/react-start", () => ({ useServerFn: (handler: unknown) => handler }));
+vi.mock("@/lib/academy-certification.functions", () => ({ manageModuleQuiz: vi.fn() }));
 vi.mock("@/lib/academy-curriculum.functions", () => ({
   getCourseCurriculum: load,
   updateCourseLesson: save,

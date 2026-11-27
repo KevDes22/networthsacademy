@@ -1,3 +1,4 @@
+import { AcademyCertificates } from "./academy-certificates";
 import { LearnerCourses } from './academy-learner-courses';
 import { CourseCurriculumManagement } from './academy-curriculum-management';
 import { useState } from 'react';
@@ -182,11 +183,7 @@ export function DashboardPage({ account, view, adminData, curriculumId }: { acco
           : <InstructorCourseManagement />)}
         {view === 'instructors' && admin && <InstructorManagement />}
 
-        {view === 'certificates' && <>
-          <h1 className="section-title">Certificates</h1>
-          <p className="text-sm text-muted-foreground mt-3 mb-8">Your achievements will live here.</p>
-          <Empty icon={GraduationCap} title="No certificates yet" text="Certificates will become available when learning and course completion launch." browse />
-        </>}
+        {view === 'certificates' && <AcademyCertificates userId={account.profile.id} />}
 
         {(view === 'profile' || view === 'settings') && <>
           <h1 className="section-title">{admin ? 'Settings' : 'My Profile'}</h1>
