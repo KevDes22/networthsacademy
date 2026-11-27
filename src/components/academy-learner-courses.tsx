@@ -1,5 +1,6 @@
+import { CertificateRequest, ModuleQuiz } from "@/components/academy-course-certification";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useSearch } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,28 @@ import {
   readEnrolledCourse,
 } from "@/lib/academy-enrollment.functions";
 import { isSecureVideoUrl } from "@/lib/academy-curriculum";
+
+import { updateCourseCertification } from "@/lib/academy-certification.functions";
+
+function useCourseCertification(courseId: string | undefined, userId: string, ready: boolean) {
+  const action = useServerFn(updateCourseCertification);
+  const client = useQueryClient();
+  const queryKey = ["course-certification", userId, courseId];
+  const query = useQuery({
+    queryKey,
+    queryFn: () => action({ data: { courseId: courseId!, operation: "read" } }),
+    enabled: Boolean(courseId) && ready,
+    retry: false,
+    gcTime: 0,
+  });
+
+  const change = useMutation({
+    mutationFn: (data: Parameters<typeof action>[0]["data"]) => action({ data }),
+    onSuccess: (data) => client.setQueryData(queryKey, data),
+    onError: () => client.invalidateQueries({ queryKey }),
+  });
+  return { query, change };
+}
 
 export function LearnerCourses({ userId }: { userId: string }) {
   const courseId = useSearch({
@@ -31,6 +54,14 @@ export function LearnerCourses({ userId }: { userId: string }) {
     retry: false,
   });
   const current = courseId ? course : courses;
+  const certification = useCourseCertification(
+    courseId,
+    userId,
+    course.isSuccess && Boolean(course.data?.sections.length),
+  );
+  const moduleById = new Map(
+    certification.query.data?.modules.map((module) => [module.sectionId, module]),
+  );
   const firstLessonId = course.data?.sections.find((section) => section.lessons.length > 0)
     ?.lessons[0]?.id;
 
@@ -98,47 +129,97 @@ export function LearnerCourses({ userId }: { userId: string }) {
             </p>
           )}
           <div className="mt-6 space-y-5">
-            {course.data.sections.map((section) => (
-              <section key={section.id} className="rounded-md border border-border p-5">
-                <h2 className="text-lg font-semibold">{section.title}</h2>
-                {section.description && (
-                  <p className="mt-2 text-sm text-muted-foreground">{section.description}</p>
-                )}
-                {section.lessons.map((lesson) => (
-                  <details
-                    key={lesson.id}
-                    open={lesson.id === firstLessonId}
-                    className="mt-4 border-t border-border pt-4"
-                  >
-                    <summary className="cursor-pointer font-medium">{lesson.title}</summary>
-                    {lesson.summary && (
-                      <p className="mt-3 text-sm text-muted-foreground">{lesson.summary}</p>
-                    )}
-                    {lesson.lesson_type === "article" && (
-                      <p className="mt-3 whitespace-pre-wrap break-words">
-                        {lesson.article_content}
-                      </p>
-                    )}
-                    {lesson.lesson_type === "video" &&
-                      lesson.video_url &&
-                      isSecureVideoUrl(lesson.video_url) && (
-                        <a
-                          className="mt-3 inline-block text-primary underline"
-                          href={lesson.video_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Open video
-                        </a>
+            {course.data.sections.map((section) => {
+              const module = moduleById.get(section.id);
+              return (
+                <section key={section.id} className="rounded-md border border-border p-5">
+                  <h2 className="text-lg font-semibold">{section.title}</h2>
+                  {section.description && (
+                    <p className="mt-2 text-sm text-muted-foreground">{section.description}</p>
+                  )}
+                  {section.lessons.map((lesson) => (
+                    <details
+                      key={lesson.id}
+                      open={lesson.id === firstLessonId}
+                      className="mt-4 border-t border-border pt-4"
+                    >
+                      <summary className="cursor-pointer font-medium">{lesson.title}</summary>
+                      {lesson.summary && (
+                        <p className="mt-3 text-sm text-muted-foreground">{lesson.summary}</p>
                       )}
-                    {lesson.file_name && (
-                      <LessonDownload lessonId={lesson.id} fileName={lesson.file_name} />
-                    )}
-                  </details>
-                ))}
-              </section>
-            ))}
+                      {lesson.lesson_type === "article" && (
+                        <p className="mt-3 whitespace-pre-wrap break-words">
+                          {lesson.article_content}
+                        </p>
+                      )}
+                      {lesson.lesson_type === "video" &&
+                        lesson.video_url &&
+                        isSecureVideoUrl(lesson.video_url) && (
+                          <a
+                            className="mt-3 inline-block text-primary underline"
+                            href={lesson.video_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Open video
+                          </a>
+                        )}
+                      {lesson.file_name && (
+                        <LessonDownload lessonId={lesson.id} fileName={lesson.file_name} />
+                      )}
+                    </details>
+                  ))}
+                  {module && (
+                    <ModuleQuiz
+                      module={module}
+                      busy={certification.change.isPending}
+                      onComplete={() =>
+                        certification.change.mutate({
+                          courseId,
+                          operation: "complete",
+                          sectionId: section.id,
+                        })
+                      }
+                      onSubmit={(revision, answers) =>
+                        certification.change.mutate({
+                          courseId,
+                          operation: "submit",
+                          sectionId: section.id,
+                          revision,
+                          answers,
+                        })
+                      }
+                    />
+                  )}
+                </section>
+              );
+            })}
           </div>
+          {certification.query.isError && (
+            <div className="mt-4" role="alert">
+              <p>{certification.query.error.message}</p>
+              <Button
+                variant="outline"
+                className="mt-2"
+                onClick={() => void certification.query.refetch()}
+              >
+                Reload quiz status
+              </Button>
+            </div>
+          )}
+          {certification.change.isError && (
+            <p className="mt-4 text-sm text-destructive" role="alert">
+              {certification.change.error.message}
+            </p>
+          )}
+          {certification.query.data && (
+            <CertificateRequest
+              eligible={certification.query.data.eligible}
+              certificateId={certification.query.data.certificateId}
+              busy={certification.change.isPending}
+              onRequest={() => certification.change.mutate({ courseId, operation: "issue" })}
+            />
+          )}
         </>
       )}
     </section>

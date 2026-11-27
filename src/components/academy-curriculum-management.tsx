@@ -1,3 +1,4 @@
+import { ModuleQuizEditor } from "@/components/academy-module-quiz-editor";
 import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQueryClient, useQuery } from "@tanstack/react-query";
@@ -486,6 +487,7 @@ export function CourseCurriculumManagement({
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-1">
+                  <ModuleQuizEditor sectionId={section.id} title={section.title} userId={userId} />
                   <IconAction
                     label="Edit section"
                     disabled={saving}
