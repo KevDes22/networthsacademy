@@ -1,4 +1,5 @@
 import { Sparkles, Database, MessageSquareText, ScanEye, Laptop, Compass } from 'lucide-react';
+export const academyHeroImage = '/academy-classroom.webp';
 export const categories = [
  {name:'AI Content Creation',icon:Sparkles,description:'Turn ideas into impactful content',short:'AI Content'},
  {name:'Data Annotation',icon:Database,description:'Build the data behind smarter AI',short:'Data Annotation'},
