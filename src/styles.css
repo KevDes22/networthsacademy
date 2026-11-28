@@ -143,7 +143,7 @@ h1,h2,h3 { font-family: var(--font-display); letter-spacing: 0; }
 .site-header { height: 88px; border-bottom: 1px solid var(--border); background: var(--card); }
 .brand-mark { display: grid; place-items: center; width: 42px; height: 44px; border-radius: 8px; background: var(--primary); color: var(--primary-foreground); font: 800 26px var(--font-display); }
 .hero { position: relative; min-height: 570px; overflow: hidden; color: var(--hero-ink); }
-.hero-photo { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center 42%; }
+.hero-photo { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:right 42%; }
 .hero:after { content:""; position:absolute; inset:0; background:var(--gradient-hero); }
 .hero-content { position:relative; z-index:1; padding-block:72px; }
 .hero h1 { font-size:52px; line-height:1.17; font-weight:700; max-width:650px; }
@@ -174,5 +174,5 @@ h1,h2,h3 { font-family: var(--font-display); letter-spacing: 0; }
 .dash-link.active { background:var(--accent); color:var(--accent-foreground); font-weight:700; }
 .stat { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:24px; }
 .empty { padding:70px 24px; text-align:center; border-block:1px solid var(--border); }
-@media(max-width:767px) { .container-wide { width:calc(100% - 36px); } .site-header { height:74px; } .hero { min-height:590px; } .hero-content { padding-block:55px; } .hero h1 { font-size:36px; } .hero:after { background:linear-gradient(90deg,oklch(18% .05 262/.95),oklch(24% .062 261/.72)); } .section { padding-block:44px; } .section-title { font-size:25px; } .sidebar { transform:translateX(-100%); } .sidebar.open { transform:translateX(0); } .dashboard-main { margin-left:0; padding:24px 18px; } .auth-form { padding:26px; } }
+@media(max-width:767px) { .container-wide { width:calc(100% - 36px); } .site-header { height:74px; } .hero { min-height:590px; } .hero-photo { object-position:center 42%; } .hero-content { padding-block:55px; } .hero h1 { font-size:36px; } .hero:after { background:linear-gradient(90deg,oklch(18% .05 262/.95),oklch(24% .062 261/.72)); } .section { padding-block:44px; } .section-title { font-size:25px; } .sidebar { transform:translateX(-100%); } .sidebar.open { transform:translateX(0); } .dashboard-main { margin-left:0; padding:24px 18px; } .auth-form { padding:26px; } }
 @media(prefers-reduced-motion:reduce) { * { transition:none!important; animation:none!important; } }
