@@ -1,3 +1,4 @@
+import { CertificateTemplate } from "@/components/academy-certificate-template";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useSearch } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -43,27 +44,7 @@ export function AcademyCertificates({ userId }: { userId: string }) {
             </Button>
             {selected ? (
               <>
-                <style>{`@media print {
-          body * { visibility: hidden; }
-          #academy-certificate, #academy-certificate * { visibility: visible; }
-          #academy-certificate { position: absolute; top: 0; left: 0; width: 100%; margin: 0; }
-        }`}</style>
-                <article
-                  id="academy-certificate"
-                  className="mt-5 space-y-4 rounded-md border-2 border-primary bg-card p-6 text-center sm:p-12"
-                >
-                  <p className="font-semibold text-primary">Networths Academy</p>
-                  <h2 className="font-display text-3xl font-semibold">Certificate of Completion</h2>
-                  <p>Awarded to</p>
-                  <p className="text-2xl font-semibold break-words">{selected.learnerName}</p>
-                  <p>
-                    for completing <strong>{selected.courseTitle}</strong>
-                  </p>
-                  <p>Issued {new Date(selected.issuedAt).toLocaleDateString()}</p>
-                  <p className="break-all text-xs text-muted-foreground">
-                    Certificate ID {selected.id}
-                  </p>
-                </article>
+                <CertificateTemplate certificate={selected} />
                 <Button className="mt-4" onClick={() => window.print()}>
                   Print or save PDF
                 </Button>

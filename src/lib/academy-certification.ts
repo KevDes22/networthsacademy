@@ -71,9 +71,11 @@ export const certificateList = z.array(
   z.object({
     id: z.string().uuid(),
     learnerName: z.string(),
+    leadInstructorName: z.string().nullable().optional(),
     courseTitle: z.string(),
     issuedAt: z.string().datetime({ offset: true }),
   }),
 );
 export type AuthoredQuiz = z.infer<typeof authoredQuiz>;
 export type ModuleCertification = z.infer<typeof courseCertification>["modules"][number];
+export type AcademyCertificateRecord = z.infer<typeof certificateList>[number];
